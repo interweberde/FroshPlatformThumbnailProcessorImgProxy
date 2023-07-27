@@ -2,14 +2,14 @@
 
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 
-This plugins allows you to use your self-hosted secured ImgProxy. You will need Plugin `Thumbnail Processor`.
+This plugin allows you to use your self-hosted secured imgproxy. You will need Plugin `Thumbnail Processor`.
 
 ## Install
 
 Download the plugin from the release page and enable it in shopware.
 
 ## Usage
-Adjust the config. [See docs of ImgProxy.](https://docs.imgproxy.net/#/configuration?id=url-signature)
+Adjust the config. [See docs of imgproxy.](https://docs.imgproxy.net/signing_the_url)
 
 ## License
 

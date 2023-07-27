@@ -7,6 +7,7 @@
         <service id="Frosh\ThumbnailProcessorImgProxy\Service\ThumbnailUrlTemplate" decorates="Frosh\ThumbnailProcessor\Service\ThumbnailUrlTemplateInterface">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="Frosh\ThumbnailProcessorImgProxy\Service\ThumbnailUrlTemplate.inner"/>
+            <argument type="service" id="Frosh\ThumbnailProcessor\Service\SalesChannelIdDetector"/>
         </service>
     </services>
 </container>

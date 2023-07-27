@@ -10,8 +10,8 @@
         "storage",
         "thumbnail"
     ],
-    "description": "This plugins allows you to use secured imgproxy in thumbnail processor",
-    "version": "1.0.0",
+    "description": "This plugin allows you to use secured imgproxy in thumbnail processor",
+    "version": "2.0.0",
     "type": "shopware-platform-plugin",
     "license": "MIT",
     "authors": [
@@ -21,8 +21,8 @@
         }
     ],
     "require": {
-        "frosh/platform-thumbnail-processor": "^1.0.20",
-        "shopware/core": "~6.4.0"
+        "frosh/platform-thumbnail-processor": "^3.0 || ^4.0",
+        "shopware/core": "~6.5.0"
     },
     "extra": {
         "shopware-plugin-class": "Frosh\\ThumbnailProcessorImgProxy\\FroshPlatformThumbnailProcessorImgProxy",
@@ -31,8 +31,8 @@
             "en-GB": "ThumbnailProcessorImgProxy Addon"
         },
         "description": {
-            "de-DE": "This plugins allows you to use secured imgproxy in thumbnail processor",
-            "en-GB": "This plugins allows you to use secured imgproxy in thumbnail processor"
+            "de-DE": "Mit diesem Plugin können Sie Ihren selbst gehosteten, gesicherten imgproxy verwenden.",
+            "en-GB": "This plugin allows you to use your self-hosted secured imgproxy."
         }
     },
     "autoload": {

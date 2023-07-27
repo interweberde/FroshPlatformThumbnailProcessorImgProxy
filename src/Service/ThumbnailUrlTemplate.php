@@ -2,76 +2,87 @@
 
 namespace Frosh\ThumbnailProcessorImgProxy\Service;
 
+use Frosh\ThumbnailProcessor\Service\SalesChannelIdDetector;
 use Frosh\ThumbnailProcessor\Service\ThumbnailUrlTemplateInterface;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 class ThumbnailUrlTemplate implements ThumbnailUrlTemplateInterface
 {
-    /** @var string */
-    private $domain;
+    private ?array $config = null;
 
-    /** @var string */
-    private $key;
-
-    /** @var string */
-    private $salt;
-
-    /** @var string */
-    private $resizingType;
-
-    /** @var string */
-    private $gravity;
-
-    /** @var int */
-    private $enlarge;
-
-    /** @var int */
-    private $signatureSize;
-
-    /**
-     * @var ThumbnailUrlTemplateInterface
-     */
-    private $parent;
-
-    public function __construct(SystemConfigService $systemConfigService, ThumbnailUrlTemplateInterface $parent)
-    {
-        $this->domain = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.Domain');
-        $this->key = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.imgproxykey');
-        $this->salt = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.imgproxysalt');
-        $this->resizingType = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.resizingType') ?: 'fit';
-        $this->gravity = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.gravity') ?: 'sm';
-        $this->enlarge = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.enlarge') ?: 0;
-        $this->signatureSize = $systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config.signatureSize') ?: 32;
-        $this->parent = $parent;
+    public function __construct(
+        private readonly SystemConfigService $systemConfigService,
+        private readonly ThumbnailUrlTemplateInterface $parent,
+        private readonly SalesChannelIdDetector $salesChannelIdDetector
+    ) {
     }
 
-    /**
-     * @param string $mediaUrl
-     * @param string $mediaPath
-     * @param string $width
-     * @param string $height
-     */
-    public function getUrl($mediaUrl, $mediaPath, $width, $height = ''): string
+    public function getUrl(string $mediaUrl, string $mediaPath, string $width): string
     {
-        $keyBin = pack('H*', $this->key);
-        $saltBin = pack('H*', $this->salt);
+        $config = $this->getConfig();
 
-        if (empty($keyBin) || empty($saltBin)) {
-            return $this->parent->getUrl($mediaUrl, $mediaPath, $width, $height);
+        if (empty($config)) {
+            return $this->parent->getUrl($mediaUrl, $mediaPath, $width);
         }
 
-        $extension = pathinfo($mediaPath, PATHINFO_EXTENSION);
+        $extension = pathinfo($mediaPath, \PATHINFO_EXTENSION);
         $encodedUrl = rtrim(strtr(base64_encode($mediaUrl . '/' . $mediaPath), '+/', '-_'), '=');
 
-        $path = "/rs:{$this->resizingType}:{$width}:{$height}/g:{$this->gravity}/{$encodedUrl}.{$extension}";
-        $signature = hash_hmac('sha256', $saltBin . $path, $keyBin, true);
+        $path = "/rs:{$config['resizingType']}:{$width}:0:{$config['enlarge']}/g:{$config['gravity']}/{$encodedUrl}.{$extension}";
+        $signature = hash_hmac('sha256', $config['saltBin'] . $path, $config['keyBin'], true);
 
-        if ($this->signatureSize !== 32) {
-            $signature = pack('A' . $this->signatureSize, $signature);
+        if ($config['signatureSize'] !== 32) {
+            $signature = pack('A' . $config['signatureSize'], $signature);
         }
 
         $signature = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
-        return $this->domain . '/' . $signature . $path;
+        return \rtrim($config['Domain'], '/') . '/' . $signature . $path;
+    }
+
+    /**
+     * @return array{Domain: string, imgproxykey: string, imgproxysalt: string, keyBin: string, saltBin: string, resizingType: string, gravity: string, enlarge: int, signatureSize: int}
+     */
+    private function getConfig(): array
+    {
+        if (!is_array($this->config)) {
+            $salesChannelId = $this->salesChannelIdDetector->getSalesChannelId();
+            $config = $this->systemConfigService->get('FroshPlatformThumbnailProcessorImgProxy.config', $salesChannelId);
+
+            if (!\is_array($config)) {
+                return [];
+            }
+
+            if (empty($config['Domain']) || empty($config['imgproxykey']) || empty($config['imgproxysalt'])) {
+                return [];
+            }
+
+            $config['keyBin'] = pack('H*', $config['imgproxykey']);
+            $config['saltBin'] = pack('H*', $config['imgproxysalt']);
+
+            if (empty($config['resizingType'])) {
+                $config['resizingType'] = 'fit';
+            }
+
+            if (empty($config['gravity'])) {
+                $config['gravity'] = 'sm';
+            }
+
+            if (!isset($config['enlarge'])) {
+                $config['enlarge'] = 0;
+            }
+
+            if (empty($config['signatureSize'])) {
+                $config['signatureSize'] = 32;
+            }
+
+            if (!\is_int($config['signatureSize'])) {
+                $config['signatureSize'] = (int) $config['signatureSize'];
+            }
+
+            $this->config = $config;
+        }
+
+        return $this->config;
     }
 }
