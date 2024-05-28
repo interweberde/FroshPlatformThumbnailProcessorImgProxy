@@ -17,12 +17,12 @@ class ThumbnailUrlTemplate implements ThumbnailUrlTemplateInterface
     ) {
     }
 
-    public function getUrl(string $mediaUrl, string $mediaPath, string $width): string
+    public function getUrl(string $mediaUrl, string $mediaPath, string $width, ?\DateTimeInterface $mediaUpdatedAt): string
     {
         $config = $this->getConfig();
 
         if (empty($config)) {
-            return $this->parent->getUrl($mediaUrl, $mediaPath, $width);
+            return $this->parent->getUrl($mediaUrl, $mediaPath, $width, $mediaUpdatedAt);
         }
 
         $extension = pathinfo($mediaPath, \PATHINFO_EXTENSION);

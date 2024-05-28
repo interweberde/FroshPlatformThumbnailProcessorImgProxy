@@ -21,8 +21,8 @@
         }
     ],
     "require": {
-        "frosh/platform-thumbnail-processor": "^3.0 || ^4.0",
-        "shopware/core": "~6.5.0"
+        "frosh/platform-thumbnail-processor": "^5.0",
+        "shopware/core": "~6.6.0"
     },
     "extra": {
         "shopware-plugin-class": "Frosh\\ThumbnailProcessorImgProxy\\FroshPlatformThumbnailProcessorImgProxy",
