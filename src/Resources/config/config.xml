@@ -49,5 +49,17 @@
             <placeholder>32</placeholder>
         </input-field>
 
+        <input-field>
+            <name>ThumbnailPattern</name>
+            <label>Thumbnail-Pattern</label>
+            <placeholder>{mediaUrl}/{mediaPath}?updatedAt={mediaUpdatedAt}</placeholder>
+            <defaultValue>{mediaUrl}/{mediaPath}?updatedAt={mediaUpdatedAt}</defaultValue>
+            <helpText><![CDATA[available variables:<br>
+                {mediaUrl}: https://cdn.test.de/<br>
+                {mediaPath}: media/image/5b/6d/16/tea.png<br>
+                {mediaUpdatedAt}: 1716882050 (unix timestamp) or null
+            ]]></helpText>
+        </input-field>
+
     </card>
 </config>

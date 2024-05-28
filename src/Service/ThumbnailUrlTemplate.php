@@ -9,6 +9,7 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
 class ThumbnailUrlTemplate implements ThumbnailUrlTemplateInterface
 {
     private ?array $config = null;
+    private ?string $pattern = null;
 
     public function __construct(
         private readonly SystemConfigService $systemConfigService,
@@ -25,10 +26,17 @@ class ThumbnailUrlTemplate implements ThumbnailUrlTemplateInterface
             return $this->parent->getUrl($mediaUrl, $mediaPath, $width, $mediaUpdatedAt);
         }
 
+        $mediaUrl = str_replace(
+            ['{mediaUrl}', '{mediaPath}', '{mediaUpdatedAt}'],
+            [$mediaUrl, $mediaPath, $mediaUpdatedAt?->getTimestamp() ?: 'null'],
+            $this->getPattern()
+        );
+        $encodedUrl = rtrim(strtr(base64_encode($mediaUrl), '+/', '-_'), '=');
+
         $extension = pathinfo($mediaPath, \PATHINFO_EXTENSION);
-        $encodedUrl = rtrim(strtr(base64_encode($mediaUrl . '/' . $mediaPath), '+/', '-_'), '=');
 
         $path = "/rs:{$config['resizingType']}:{$width}:0:{$config['enlarge']}/g:{$config['gravity']}/{$encodedUrl}.{$extension}";
+
         $signature = hash_hmac('sha256', $config['saltBin'] . $path, $config['keyBin'], true);
 
         if ($config['signatureSize'] !== 32) {
@@ -38,6 +46,18 @@ class ThumbnailUrlTemplate implements ThumbnailUrlTemplateInterface
         $signature = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
         return \rtrim($config['Domain'], '/') . '/' . $signature . $path;
+    }
+
+    private function getPattern(): string
+    {
+        if ($this->pattern) {
+            return $this->pattern;
+        }
+
+        $pattern = $this->getConfig()['ThumbnailPattern'] ?? null;
+        $this->pattern = $pattern && \is_string($pattern) ? $pattern : '{mediaUrl}/{mediaPath}?updatedAt={mediaUpdatedAt}';
+
+        return $this->pattern;
     }
 
     /**
